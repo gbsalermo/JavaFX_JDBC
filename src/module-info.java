@@ -1,12 +1,16 @@
 module JavaFX_JDBC {
     requires javafx.controls;
     requires javafx.fxml;
+    requires java.sql;
     
-    // Exporta para todos os módulos
-    exports application;
+    // Abre os pacotes para reflexão
+    opens gui to javafx.fxml;
+    opens model.entities to javafx.base;
+    opens application to javafx.graphics;  // ← ADICIONE ESTA LINHA
+    
+    // Exporta os pacotes (necessário para que outros módulos possam acessar)
     exports gui;
-    
-    // Abre para reflexão
-    opens application;
-    opens gui;
+    exports model.entities;
+    exports model.services;
+    exports application;  // ← ADICIONE ESTA LINHA
 }
