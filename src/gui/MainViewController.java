@@ -3,6 +3,7 @@ package gui;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.function.Consumer;
 
 import application.Main;
 import gui.util.Alerts;
@@ -35,11 +36,14 @@ public class MainViewController implements Initializable{
 	}
 	@FXML
 	public void onMenuItemDepartmentAction() {
-		loadView2("/gui/DepartmentList.fxml"); //Aqui chamo o file do depatarmento
+		loadView("/gui/DepartmentList.fxml", (DepartmentListController controller) -> {
+			controller.setDepartmentService(new DepartmentService());
+			controller.updateTableView();
+		}); //Aqui chamo o file do depatarmento
 	}
 	@FXML
 	public void onMenuItemAboutAction() {
-		loadView("/gui/About.fxml"); //Aqui chamo o file do about
+		loadView("/gui/About.fxml", x -> {}); //Aqui chamo o file do about
 	}
 	
 	//Metodo da interface Initialize
@@ -49,7 +53,7 @@ public class MainViewController implements Initializable{
 		
 	}
 	
-	private synchronized void loadView(String absoluteName) {
+	private synchronized <T> void loadView(String absoluteName, Consumer<T> initializingAction) {
 		try {
 		FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
 		VBox newVBox = loader.load();
@@ -61,35 +65,12 @@ public class MainViewController implements Initializable{
 		mainVBox.getChildren().clear();
 		mainVBox.getChildren().add(mainMenu);
 		mainVBox.getChildren().addAll(newVBox.getChildren());
+		
+		T controller = loader.getController(); //Meu getController agora retorna o controlador do tipo que eu chamar
+		initializingAction.accept(controller); 
 		}
 		catch (IOException e) {
 			Alerts.showAlert("IO Exception", "Error loading view", e.getMessage(), AlertType.ERROR);
 		}
 	}
-	private synchronized void loadView2(String absoluteName) {
-		try {
-		FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
-		VBox newVBox = loader.load();
-		
-		DepartmentListController controller = loader.getController();
-		controller.setDepartmentService(new DepartmentService()); //injeção de dependencia
-		controller.updateTableView();
-		
-		Scene mainScene = Main.getMainScene();
-		VBox mainVBox = (VBox) ((ScrollPane) mainScene.getRoot()).getContent();
-		
-		Node mainMenu = mainVBox.getChildren().get(0);
-		mainVBox.getChildren().clear();
-		mainVBox.getChildren().add(mainMenu);
-		mainVBox.getChildren().addAll(newVBox.getChildren());
-		
-		
-		
-		}
-		catch (IOException e) {
-			Alerts.showAlert("IO Exception", "Error loading view", e.getMessage(), AlertType.ERROR);
-		}
-	}
-	
-
 }
